@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌈 一可的魔法森林大冒险 V3.5 🌈</title>
+    <style>
+        :root {
+            --primary: #FF9A9E; --secondary: #FECFEF; --accent: #A18CD1;
+            --success: #2ed573; --danger: #ff4757; --text: #2f3542;
+            --happy: #FFD700; --magic: #00D4FF;
+        }
+        body {
+            font-family: 'Comic Sans MS', 'Microsoft YaHei', cursive, sans-serif;
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #ffeaa7 100%);
+            margin: 0; padding: 10px; color: var(--text);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            animation: backgroundShift 10s ease infinite;
+        }
+        @keyframes backgroundShift {
+            0% { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #ffeaa7 100%); }
+            50% { background: linear-gradient(225deg, #ffeaa7 0%, #fed6e3 50%, #a8edea 100%); }
+            100% { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #ffeaa7 100%); }
+        }
+        
+        #game-app {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.98), rgba(255,250,240,0.95));
+            width: 100%; max-width: 900px; min-height: 650px;
+            border-radius: 40px; box-shadow: 0 30px 80px rgba(255,105,180,0.4);
+            padding: 30px; box-sizing: border-box; position: relative;
+            overflow: hidden; text-align: center; border: 8px solid #FFB6C1;
+        }
+        
+        h1 { 
+            color: #FF1493; font-size: 42px; text-shadow: 3px 3px 0 #FFD700, 6px 6px 0 rgba(255,192,203,0.5);
+            margin-top: 0; animation: bounce 2s infinite;
+            letter-spacing: 2px;
+        }
+        .subtitle { 
+            color: #FF69B4; font-size: 18px; margin-bottom: 20px; 
+            font-weight: bold; text-shadow: 1px 1px #FFE4E1;
+            animation: fadeInOut 3s infinite;
+        }
+        @keyframes bounce { 
+            0%, 100% { transform: translateY(0) rotate(-2deg); } 
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* 卡通按钮 */
+        .btn {
+            display: inline-block; padding: 18px 50px; margin: 12px;
+            font-size: 26px; font-weight: bold; color: white; border: none;
+            border-radius: 50px; cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2), inset 0 -4px 0 rgba(0,0,0,0.2);
+            position: relative; overflow: hidden;
+        }
+        .btn::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.3); transition: 0.5s;
+        }
+        .btn:hover::before { left: 100%; }
+        .btn:hover { transform: translateY(-5px) scale(1.08); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+        .btn:active { transform: translateY(-2px); }
+        
+        .btn-start { 
+            background: linear-gradient(135deg, #FF6B9D 0%, #C44569 100%); 
+            color: #fff; font-size: 30px; animation: pulse 2s infinite;
+        }
+        .btn-review { 
+            background: linear-gradient(135deg, #F7971E 0%, #FFD200 100%); 
+            color: #8B4513;
+        }
+        .btn-next {
+            background: linear-gradient(135deg, #00D4FF 0%, #0099FF 100%);
+            color: white;
+        }
+        
+        @keyframes pulse { 
+            0%, 100% { transform: scale(1); } 
+            50% { transform: scale(1.08); }
+        }
+        
+        .hidden { display: none !important; }
+        
+        .question-text { 
+            font-size: 32px; color: #FF1493; font-weight: bold; margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: slideIn 0.6s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 动态记忆图谱 - 更卡通 */
+        .mnemonic-box {
+            background: linear-gradient(135deg, #FFF5E1, #FFE4E1);
+            border-radius: 25px; padding: 20px; margin: 20px auto;
+            max-width: 650px; font-size: 28px; display: flex; justify-content: center; align-items: center; gap: 15px;
+            border: 5px dashed #FF69B4; box-shadow: 0 10px 25px rgba(255,105,180,0.2);
+        }
+        .m-image { 
+            font-size: 65px; margin: 0 10px; animation: bounce 2s infinite; 
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+        }
+
+        /* 填空题 */
+        .spell-display { 
+            font-size: 50px; letter-spacing: 12px; color: #2f3542; margin: 25px 0; 
+            font-family: 'Arial Black', monospace; font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .blank-slot { 
+            display: inline-block; border-bottom: 6px solid #FF4757; 
+            width: 50px; text-align: center; color: #FF4757; cursor: pointer; 
+            height: 60px; line-height: 60px; font-size: 32px; font-weight: bold;
+            transition: all 0.2s;
+            border-radius: 8px;
+        }
+        .blank-slot:hover { transform: scale(1.1); }
+        .blank-slot.active { 
+            border-bottom-color: #00D4FF; background: linear-gradient(135deg, #E0F7FF, #FFE4F5); 
+            border-radius: 12px; box-shadow: 0 0 15px rgba(0,212,255,0.6);
+            animation: glow 1.5s infinite;
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0,212,255,0.6); }
+            50% { box-shadow: 0 0 25px rgba(0,212,255,0.9); }
+        }
+        
+        .options-grid { 
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 25px; 
+        }
+        .opt-chip { 
+            padding: 14px 30px; font-size: 28px; background: linear-gradient(135deg, #FFE4E1, #FFF0F5); 
+            border: 4px solid #FF69B4; border-radius: 20px; cursor: pointer; font-weight: bold; 
+            transition: all 0.25s; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .opt-chip:hover { 
+            transform: translateY(-8px) scale(1.12); 
+            border-color: #FF1493; background: linear-gradient(135deg, #FFB6D9, #FFC0CB);
+            box-shadow: 0 8px 20px rgba(255,105,180,0.4);
+        }
+        .opt-chip:active { transform: translateY(-4px); }
+        
+        /* 语音题 */
+        .mic-btn { 
+            font-size: 100px; background: none; border: none; cursor: pointer; 
+            transition: all 0.3s; margin: 20px 0;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        .mic-btn:hover { transform: scale(1.15); filter: drop-shadow(0 6px 12px rgba(0,0,0,0.3)); }
+        .mic-btn.recording { 
+            color: #FF4757; animation: shake 0.3s infinite, glow-red 1s infinite; 
+            filter: drop-shadow(0 0 20px #FF4757);
+        }
+        @keyframes glow-red {
+            0%, 100% { filter: drop-shadow(0 0 15px #FF4757); }
+            50% { filter: drop-shadow(0 0 25px #FF1493); }
+        }
+        .phonics-hint { 
+            font-size: 36px; color: #FF69B4; letter-spacing: 3px; 
+            font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin: 15px 0;
+        }
+        #speech-result { font-size: 24px; color: #00D4FF; font-weight: bold; min-height: 35px; }
+
+        /* 词根实验室 */
+        .lab-equation { 
+            font-size: 45px; font-weight: bold; color: #2f3542; margin: 30px 0; 
+            display: flex; align-items: center; justify-content: center; gap: 20px;
+            flex-wrap: wrap;
+        }
+        .lab-box { 
+            background: linear-gradient(135deg, #FFE4B5, #FFDAB9); 
+            border: 4px dashed #FF8C00; padding: 15px 25px; border-radius: 20px; 
+            color: #D2691E; font-weight: bold; box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+        .lab-drop { 
+            background: white; border: 5px solid #00D4FF; padding: 15px 35px; 
+            border-radius: 20px; min-width: 80px; color: #00D4FF; cursor: pointer;
+            font-weight: bold; transition: all 0.3s; box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+        .lab-drop:hover { transform: scale(1.08); box-shadow: 0 0 20px rgba(0,212,255,0.6); }
+
+        /* 倒计时遮罩 */
+        #stage-transition {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255,182,193,0.98), rgba(230,230,250,0.98));
+            z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .stage-title { 
+            font-size: 50px; color: #FF1493; font-weight: bold; margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: slideDown 0.6s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .count-number { 
+            font-size: 180px; color: #FFD700; font-weight: bold; 
+            animation: zoomPulse 1s ease-out;
+            text-shadow: 3px 3px 0 #FF69B4, 6px 6px 0 rgba(255,105,180,0.3);
+        }
+        @keyframes zoomPulse {
+            0% { transform: scale(2); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        /* 反馈 */
+        #feedback { 
+            font-size: 32px; margin-top: 20px; font-weight: bold; 
+            min-height: 50px; animation: popIn 0.5s ease-out;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; font-size: 22px; font-weight: bold; color: #FF69B4;
+            padding: 10px; background: linear-gradient(90deg, #FFE4E1, #FFF0F5);
+            border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 星星奖励 */
+        .star { font-size: 40px; animation: starSpin 0.6s ease-out; margin: 0 5px; }
+        @keyframes starSpin {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        /* 庆祝动画 */
+        .confetti {
+            position: fixed; pointer-events: none; animation: confettiFall 3s ease-out forwards;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            h1 { font-size: 28px; }
+            .question-text { font-size: 24px; }
+            .btn { padding: 12px 30px; font-size: 20px; }
+            #game-app { border-radius: 20px; padding: 15px; min-height: 500px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-app">
+    <!-- 主菜单 -->
+    <div id="menu-view">
+        <h1>🌈✨ 一可的魔法森林 V3.5 ✨🌈</h1>
+        <div class="subtitle">🎮 魔法四关大冒险 | 拼写 🔤 | 发音 🎙️ | 句子 🪄 | 词根 🧪</div>
+        
+        <div class="mnemonic-box" style="margin: 30px auto;">
+            <span class="m-image">🧙‍♀️</span>
+            <span style="font-size: 24px; color: #FF1493;">准备好冒险了吗？</span>
+            <span class="m-image">✨</span>
+        </div>
+        
+        <button class="btn btn-start" onclick="startAdventure()">🚀 开启 4 大魔法挑战！</button><br>
+        <button class="btn btn-review" onclick="openReview()">🕰️ 记忆修复舱</button>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div id="game-view" class="hidden">
+        <div class="top-bar">
+            <span id="stage-text" style="color:#FF1493;">关卡 1/4</span>
+            <span id="progress-text" style="color:#00D4FF;">进度: 1/10</span>
+            <button onclick="location.reload()" style="background:none; border:none; color:#FF4757; font-weight:bold; cursor:pointer; font-size:24px; transition:0.2s;">❌</button>
+        </div>
+        
+        <div id="question-container" class="question-text"></div>
+        <div id="mnemonic-container"></div>
+        <div id="interactive-area"></div>
+        <div id="feedback"></div>
+    </div>
+
+    <!-- 关卡切换倒计时 -->
+    <div id="stage-transition" class="hidden">
+        <div class="stage-title" id="trans-title">准备进入下一关！</div>
+        <div id="count-num" class="count-number">3</div>
+        <div style="font-size: 28px; color: #FF69B4; margin-top: 20px;">💪 你可以的！</div>
+    </div>
+
+    <!-- 复习界面 -->
+    <div id="review-view" class="hidden">
+        <h2 style="color:#FF1493; font-size: 36px; text-shadow: 2px 2px #FFD700;">🕰️ 艾宾浩斯记忆修复舱</h2>
+        <div id="review-list" style="text-align:left; background: linear-gradient(135deg, #FFF8DC, #FFE4E1); padding:25px; border-radius:20px; font-size:22px; max-height: 400px; overflow-y: auto; border: 4px dashed #FF69B4;"></div>
+        <button class="btn btn-review" onclick="location.reload()" style="margin-top: 25px;">🏠 返回大厅</button>
+    </div>
+</div>
+
+<script>
+// ================= 全量题库 (V3.5 - 卡通版) =================
+
+const spellData =[
+    { w: 'watch TV', zh: '看电视', html: '<span class="m-image">👀</span> w - a - t - c - h <span class="m-image">📺</span>', display: 'w _ t c h   T V', ans: ['a'], opts:['a','o','e','i'] },
+    { w: 'usually', zh: '经常 (80%)', html: 'u - s - <span style="color:#ff4757">u</span> - a - l - l - <span style="color:#ff4757">y</span>', display: 'u s _ a l l _', ans: ['u','y'], opts: ['u','y','e','i'] },
+    { w: 'like doing', zh: '喜欢做某事', html: '<span class="m-image">❤️</span> l - i - k - e   d - o - i - n - g', display: 'l _ k e   d o _ n g', ans: ['i','i'], opts: ['i','e','a','o'] },
+    { w: 'sometimes', zh: '有时 (30%)', html: 's - <span style="color:#ff4757">o</span> - m - e - t - <span style="color:#ff4757">i</span> - m - e - s', display: 's _ m e t _ m e s', ans: ['o','i'], opts:['o','a','i','e'] },
+    { w: 'children', zh: '孩子们 (复数)', html: '<span class="m-image">👶👧👦</span> ch - i - l - d - r - e - n', display: 'c h _ l d r _ n', ans:['i','e'], opts:['i','a','e','o'] },
+    { w: 'cows', zh: '奶牛(复数)', html: '<span class="m-image">🐄🥛</span> c - <span style="color:#ff4757">ow</span> - s', display: 'c _ _ s', ans: ['o','w'], opts:['o','w','a','r'] },
+    { w: 'always', zh: '一直 (100%)', html: 'a - l - w - <span style="color:#ff4757">a - y</span> - s', display: 'a l w _ _ s', ans: ['a','y'], opts: ['a','y','e','i'] },
+    { w: 'often', zh: '通常 (60%)', html: '<span class="m-image">⏰</span> o - f - t - e - n', display: 'o f t _ n', ans:['e'], opts:['e','a','o'] },
+    { w: 'seldom', zh: '几乎不 (10%)', html: '<span class="m-image">🪫</span> s - e - l - d - o - m', display: 's _ l d _ m', ans:['e','o'], opts:['e','a','o','u'] },
+    { w: 'never', zh: '从不 (0%)', html: '<span class="m-image">🚫</span> n - e - v - e - r', display: 'n _ v _ r', ans: ['e','e'], opts: ['e','a','i'] },
+];
+
+const voiceData =[
+    { w: 'visit Grandma and Grandpa', zh: '看望爷爷奶奶', html: '<span class="m-image">👵</span> <span class="m-image">🏠</span> <span class="m-image">👴</span>', ph: 'vi-sit Grand-ma and Grand-pa' },
+    { w: 'see a film', zh: '看电影', html: '<span class="m-image">👀</span> <span class="m-image">🎬</span>', ph: 'see a film' },
+    { w: 'have a good time', zh: '过得愉快', html: '<span class="m-image">😆</span> <span class="m-image">🎉</span>', ph: 'have a good time' },
+    { w: 'on the farm', zh: '在农场', html: '<span class="m-image">🚜</span> <span class="m-image">🌾</span>', ph: 'on the farm' },
+    { w: 'watch fireworks', zh: '看烟花', html: '<span class="m-image">👀</span> <span class="m-image">🎆</span>', ph: 'watch fire-works' },
+    { w: 'take a family photo', zh: '拍全家福', html: '<span class="m-image">📸</span> <span class="m-image">👨‍👩‍👧‍👦</span>', ph: 'take a fa-mi-ly pho-to' }
+];
+
+const sentenceData =[
+    { text: 'What do you often do in the holidays ?', zh: '你在假期通常做什么？', html: '<span class="m-image">🏖️❓</span>' },
+    { text: 'I see a new film . It is funny .', zh: '我经常看新电影。很好笑。', html: '<span class="m-image">🎬😂</span>' },
+    { text: 'I skate with my dad . It is so cool .', zh: '我和爸爸滑冰。这太酷了。', html: '<span class="m-image">👨‍👧⛸️🧊</span>' },
+    { text: 'I visit my grandma and grandpa . I have a good time .', zh: '我看望爷爷奶奶。我过得很愉快。', html: '<span class="m-image">👵👴😊</span>' },
+    { text: 'Your holidays sound really great !', zh: '你的假期听起来真的很棒！', html: '<span class="m-image">👂✨</span>' },
+];
+
+const labData =[
+    { q: '合成烟花！', p1: 'fire (火)', p2: '???', res: 'fireworks 🎆', ans: 'works', opts: ['works', 'words', 'walks'] },
+    { q: '把小孩变成复数！', p1: 'child (小孩)', p2: '???', res: 'children 👶👧👦', ans: 'ren', opts: ['s', 'es', 'ren'] },
+    { q: '同义词转换 (喜欢做某事)', p1: 'like doing', p2: '=', res: 'like to do ❤️', ans: 'like to do', opts: ['like do', 'like to do', 'likes'] },
+    { q: '合成副词：有时', p1: 'some (一些)', p2: '???', res: 'sometimes ⏳', ans: 'times', opts: ['times', 'things', 'day'] },
+    { q: '合成词：爷爷', p1: 'Grand (老/大)', p2: '???', res: 'Grandpa 👴', ans: 'pa', opts: ['ma', 'pa', 'dad'] },
+    { q: '副词加后缀：经常', p1: 'usual (平常)', p2: '???', res: 'usually 🔁', ans: 'ly', opts: ['ly', 's', 'ing'] }
+];
+
+const stages =[
+    { type: 'spell', data: spellData, title: '🧩 关卡1：硬核拼写' },
+    { type: 'voice', data: voiceData, title: '🎙️ 关卡2：大声说短语' },
+    { type: 'sentence', data: sentenceData, title: '🪄 关卡3：句子积木' },
+    { type: 'lab', data: labData, title: '🧪 关卡4：词根合成实验室' }
+];
+
+let currentStageIdx = 0; let currentQIdx = 0; let recognition = null; let sentenceSelected =[];
+
+// ================= 工具函数 =================
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        let msg = new SpeechSynthesisUtterance(text.replace('???','').replace('=','equals'));
+        msg.lang = 'en-US'; msg.rate = 0.85;
+        window.speechSynthesis.speak(msg);
+    }
+}
+
+function celebrate() {
+    for(let i = 0; i < 20; i++) {
+        let conf = document.createElement('div');
+        conf.className = 'confetti';
+        conf.innerHTML = ['🎉','⭐','🌟','✨','🎊'][Math.floor(Math.random()*5)];
+        conf.style.left = Math.random()*100 + '%';
+        conf.style.fontSize = (20+Math.random()*30) + 'px';
+        conf.style.setProperty('--duration', (2+Math.random()*2)+'s');
+        document.body.appendChild(conf);
+        setTimeout(()=>conf.remove(), 3000);
+    }
+}
+
+function recordMistake(text, zh) {
+    let mistakes = JSON.parse(localStorage.getItem('yike_v3_mistakes')) || {};
+    mistakes[text] = { zh: zh, time: new Date().toLocaleString() };
+    localStorage.setItem('yike_v3_mistakes', JSON.stringify(mistakes));
+}
+
+function openReview() {
+    document.getElementById('menu-view').classList.add('hidden');
+    document.getElementById('review-view').classList.remove('hidden');
+    let mistakes = JSON.parse(localStorage.getItem('yike_v3_mistakes')) || {};
+    let listArea = document.getElementById('review-list');
+    let items = Object.keys(mistakes);
+    if (items.length === 0) {
+        listArea.innerHTML = "<p style='color:#2ed573; font-size:24px; font-weight:bold;'>🎉 完美！一可特工目前没有错题！</p>";
+    } else {
+        listArea.innerHTML = items.map(k => `<div style="padding:15px; border-bottom:3px solid #FF69B4; margin-bottom:10px; border-radius:10px; background:white;">⚠️ <b>${k}</b> <br><span style="font-size:18px; color:#747d8c">${mistakes[k].zh}</span></div>`).join('');
+    }
+}
+
+// ================= 游戏流控制 =================
+function startAdventure() {
+    document.getElementById('menu-view').classList.add('hidden');
+    stages.forEach(stage => stage.data.sort(() => Math.random() - 0.5));
+    currentStageIdx = 0; startStage();
+}
+
+function startStage() {
+    currentQIdx = 0;
+    let stageInfo = stages[currentStageIdx];
+    document.getElementById('stage-transition').classList.add('hidden');
+    document.getElementById('game-view').classList.remove('hidden');
+    document.getElementById('stage-text').innerText = stageInfo.title;
+    
+    if (stageInfo.type === 'voice') initSpeechRecognition();
+    else if (recognition) { recognition.stop(); recognition = null; }
+    
+    loadQuestion();
+}
+
+function loadQuestion() {
+    let stageInfo = stages[currentStageIdx];
+    if (currentQIdx >= stageInfo.data.length) { triggerStageTransition(); return; }
+
+    let q = stageInfo.data[currentQIdx];
+    document.getElementById('progress-text').innerText = `进度: ${currentQIdx + 1} / ${stageInfo.data.length}`;
+    document.getElementById('question-container').innerText = q.zh || q.q;
+    
+    let mContainer = document.getElementById('mnemonic-container');
+    if (q.html) {
+        mContainer.innerHTML = `<div class="mnemonic-box">${q.html}</div>`;
+        mContainer.classList.remove('hidden');
+    } else mContainer.classList.add('hidden');
+
+    document.getElementById('feedback').innerText = '';
+    let area = document.getElementById('interactive-area');
+    area.innerHTML = '';
+
+    if (stageInfo.type === 'spell') renderSpell(q, area);
+    else if (stageInfo.type === 'voice') renderVoice(q, area);
+    else if (stageInfo.type === 'sentence') renderSentence(q, area);
+    else if (stageInfo.type === 'lab') renderLab(q, area);
+
+    if(stageInfo.type !== 'sentence' && stageInfo.type !== 'lab') speak(q.w);
+}
+
+function nextQuestionFast() { currentQIdx++; setTimeout(loadQuestion, 800); }
+
+function triggerStageTransition() {
+    currentStageIdx++;
+    if (currentStageIdx >= stages.length) {
+        celebrate();
+        document.getElementById('game-view').classList.add('hidden');
+        document.getElementById('menu-view').classList.remove('hidden');
+        document.querySelector('#menu-view h1').innerHTML = "🎊 Unit 1 通关大满贯！ 🎊<br><span style='font-size:28px;'>👑 一可特工勋章已解锁！👑</span>";
+        speak("Congratulations! You are super great!");
+        return;
+    }
+    let overlay = document.getElementById('stage-transition');
+    document.getElementById('trans-title').innerText = stages[currentStageIdx].title + " 准备开始！";
+    overlay.classList.remove('hidden');
+    
+    let count = 3; document.getElementById('count-num').innerText = count;
+    let timer = setInterval(() => {
+        count--;
+        if (count > 0) document.getElementById('count-num').innerText = count;
+        else { clearInterval(timer); startStage(); }
+    }, 1000);
+}
+
+// ================= 渲染：1. 拼写题 =================
+function renderSpell(q, container) {
+    let html = `
+        <div class="spell-display">${q.display.split(' ').map(c => c === '_' ? '<span class="blank-slot" onclick="selectBlank(this)"></span>' : `<span>${c}</span>`).join(' ')}</div>
+        <div class="options-grid" id="spell-opts"></div>`;
+    container.innerHTML = html;
+    let optsArea = document.getElementById('spell-opts');
+    [...q.opts].sort(() => Math.random() - 0.5).forEach(opt => {
+        let btn = document.createElement('div'); btn.className = 'opt-chip'; btn.innerText = opt;
+        btn.onclick = () => fillBlank(opt, q); optsArea.appendChild(btn);
+    });
+    setTimeout(() => { let f = document.querySelector('.blank-slot'); if(f) selectBlank(f); }, 50);
+}
+
+function selectBlank(el) { document.querySelectorAll('.blank-slot').forEach(e => e.classList.remove('active')); el.classList.add('active'); }
+
+function fillBlank(letter, q) {
+    let active = document.querySelector('.blank-slot.active'); if (!active) return;
+    active.innerText = letter; active.classList.remove('active');
+    let next = Array.from(document.querySelectorAll('.blank-slot')).find(e => e.innerText === '');
+    if (next) selectBlank(next); else {
+        let ans = Array.from(document.querySelectorAll('.blank-slot')).map(e => e.innerText).join('');
+        let fb = document.getElementById('feedback');
+        if (ans === q.ans.join('')) { 
+            fb.innerHTML = '✅ 拼写完美！ ' + ['太棒了！','天才！','棒极了！','你真聪明！'][Math.floor(Math.random()*4)]; 
+            fb.style.color = 'var(--success)'; 
+            celebrate();
+            speak(q.w); 
+            nextQuestionFast(); 
+        } else {
+            fb.innerHTML = '❌ 字母排错啦，重来！'; fb.style.color = 'var(--danger)'; recordMistake(q.w, q.zh);
+            setTimeout(() => { document.querySelectorAll('.blank-slot').forEach(e => e.innerText = ''); selectBlank(document.querySelector('.blank-slot')); fb.innerText=''; }, 1200);
+        }
+    }
+}
+
+// ================= 渲染：2. 语音题 =================
+function renderVoice(q, container) {
+    container.innerHTML = `
+        <div class="phonics-hint">${q.ph}</div>
+        <button id="mic-btn" class="mic-btn" onclick="toggleRecord()">🎤</button>
+        <p id="speech-result">点击🎤大声读！</p>
+        <button onclick="overrideVoice()" style="margin-top:15px; background:linear-gradient(135deg, #87CEEB, #00BFFF); color:white; border:none; border-radius:15px; padding:10px 20px; cursor:pointer; font-size:18px; font-weight:bold; transition:0.2s;">发音准没识别？点我通关</button>
+    `;
+}
+function initSpeechRecognition() {
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (window.SpeechRecognition) {
+        recognition = new window.SpeechRecognition(); recognition.lang = 'en-US';
+        recognition.onstart = () => { document.getElementById('mic-btn').classList.add('recording'); document.getElementById('speech-result').innerText = '正在倾听...👂'; };
+        recognition.onresult = (e) => { 
+            let t = e.results[0][0].transcript.toLowerCase().trim(); 
+            document.getElementById('speech-result').innerText = `听到: "${t}"`; 
+            checkVoice(t); document.getElementById('mic-btn').classList.remove('recording'); 
+        };
+        recognition.onerror = () => { document.getElementById('speech-result').innerText = '没听清，再点一次。'; document.getElementById('mic-btn').classList.remove('recording'); };
+    }
+}
+function toggleRecord() { if(recognition) try{ recognition.start(); }catch(e){ recognition.stop(); setTimeout(()=>recognition.start(),200); } else alert("浏览器不支持录音呢..."); }
+function checkVoice(t) {
+    let q = stages[currentStageIdx].data[currentQIdx];
+    let key = q.w.toLowerCase().split(' ').filter(w=>w.length>2)[0] || q.w;
+    let fb = document.getElementById('feedback');
+    if (t.includes(key) || q.w.toLowerCase().includes(t)) { 
+        fb.innerHTML = '🌟 发音很棒！ ' + ['太棒了！','天才！','完美！','神奇！'][Math.floor(Math.random()*4)]; 
+        fb.style.color = 'var(--success)'; 
+        celebrate();
+        nextQuestionFast(); 
+    } else { 
+        fb.innerHTML = '🤔 再大声点试一次！'; fb.style.color = 'var(--danger)'; recordMistake(q.w, q.zh); speak(q.w); 
+    }
+}
+function overrideVoice() { 
+    celebrate();
+    document.getElementById('feedback').innerHTML = '✅ 特批通关！'; 
+    document.getElementById('feedback').style.color = 'var(--success)'; 
+    nextQuestionFast(); 
+}
+
+// ================= 渲染：3. 句子题 =================
+function renderSentence(q, container) {
+    sentenceSelected =[]; let wordsArray = q.text.split(' ');
+    container.innerHTML = `<div id="target-sentence" style="min-height:80px; border:5px dashed #FF69B4; border-radius:20px; padding:20px; margin-bottom:25px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center; align-items:center; background:linear-gradient(135deg, #FFE4E1, #FFF0F5);"></div>
+        <div id="word-bank" class="options-grid" style="background:linear-gradient(135deg, #E0F7FF, #F0E6FF); padding:25px; border-radius:20px; border:4px dashed #00D4FF;"></div>`;
+    let bankArea = document.getElementById('word-bank');
+    [...wordsArray].sort(() => Math.random() - 0.5).forEach(w => {
+        let chip = document.createElement('div'); chip.className = 'opt-chip'; chip.innerText = w;
+        chip.onclick = () => {
+            speak(w); document.getElementById('target-sentence').appendChild(chip); sentenceSelected.push(w); chip.onclick = null; chip.style.background = 'linear-gradient(135deg, #FFD700, #FFA500)'; chip.style.borderColor = '#FF8C00';
+            let isCorrect = sentenceSelected.every((val, index) => val === wordsArray[index]);
+            let fb = document.getElementById('feedback');
+            if (!isCorrect) { fb.innerHTML = '❌ 积木搭错啦！重搭'; fb.style.color = 'var(--danger)'; recordMistake(q.text, q.zh); setTimeout(loadQuestion, 1000); } 
+            else if (sentenceSelected.length === wordsArray.length) { 
+                fb.innerHTML = '✅ 完美拼装！ ' + ['棒极了！','聪明！','太好了！','超级！'][Math.floor(Math.random()*4)]; 
+                fb.style.color = 'var(--success)'; 
+                celebrate();
+                speak(q.text); 
+                nextQuestionFast(); 
+            }
+        }; bankArea.appendChild(chip);
+    });
+}
+
+// ================= 渲染：4. 词根实验室 =================
+function renderLab(q, container) {
+    container.innerHTML = `
+        <div class="lab-equation">
+            <span class="lab-box">${q.p1}</span> + 
+            <span class="lab-drop" id="lab-target"> [ 选药水 ] </span> = 
+            <span style="color:#FF69B4; font-size:35px; font-weight:bold;">${q.res}</span>
+        </div>
+        <div class="options-grid" id="lab-opts"></div>
+    `;
+    let optsArea = document.getElementById('lab-opts');
+    [...q.opts].sort(()=>Math.random() - 0.5).forEach(opt => {
+        let btn = document.createElement('div'); btn.className = 'opt-chip'; btn.innerText = opt;
+        btn.onclick = () => {
+            speak(opt);
+            let fb = document.getElementById('feedback');
+            if(opt === q.ans) {
+                document.getElementById('lab-target').innerText = opt;
+                document.getElementById('lab-target').style.borderColor = '#2ed573';
+                document.getElementById('lab-target').style.color = '#2ed573';
+                document.getElementById('lab-target').style.background = '#E8F8F5';
+                fb.innerHTML = '🧪 合成成功！ ' + ['太棒了！','天才！','完美！','棒极了！'][Math.floor(Math.random()*4)]; 
+                fb.style.color = 'var(--success)';
+                celebrate();
+                speak(q.res.replace(/[^a-zA-Z\s]/g, ''));
+                nextQuestionFast();
+            } else {
+                fb.innerHTML = '💥 砰！合成失败，药水选错啦！'; fb.style.color = 'var(--danger)';
+                recordMistake(q.res, q.q);
+            }
+        }; optsArea.appendChild(btn);
+    });
+}
+</script>
+
+</body>
+</html>
